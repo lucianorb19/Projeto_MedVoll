@@ -29,6 +29,17 @@ builder.Services.AddTransient<IConsultaRepository, ConsultaRepository>();
 builder.Services.AddTransient<IMedicoService, MedicoService>();
 builder.Services.AddTransient<IConsultaService, ConsultaService>();
 
+//MIDDLEWARE CONTRA ATAQUES CSRF
+builder.Services.AddAntiforgery(options =>
+{
+    options.Cookie.Name = "VollMed.AntiForgery"; // Nome personalizado do cookie
+    options.Cookie.HttpOnly = true; // Evitar acesso via JavaScript
+    options.HeaderName = "X-CSRF-TOKEN"; // Cabeçalho personalizado para APIs
+});
+
+//CONTROLE DE AUTORIZAÇÃO - [Authorize] NO INÍCIO DA CLASSE
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -45,11 +56,17 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+//USO DE UM MIDDLEWARE DE AUTENTICAÇÃO NO PIPELINE DE REQUISIÇÕES
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+//HABILITA AS PÁGINAS DE LOGIN E CADASTRO - FEITO NO SCAFOLDING
+//E HABILITA O USO DESSES RECURSOS NOS ARQUIVOS ESTÁTICOS DO ASP.NET CORE IDENTITY - CSS, JS
+app.MapRazorPages().WithStaticAssets();
 
 using (var scope = app.Services.CreateScope())
 {

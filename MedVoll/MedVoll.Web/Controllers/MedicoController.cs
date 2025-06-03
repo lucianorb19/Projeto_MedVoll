@@ -2,10 +2,12 @@
 using MedVoll.Web.Exceptions;
 using MedVoll.Web.Interfaces;
 using MedVoll.Web.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MedVoll.Web.Controllers
 {
+    [Authorize]
     [Route("medicos")]
     public class MedicoController : BaseController
     {
@@ -38,6 +40,12 @@ namespace MedVoll.Web.Controllers
             return View(PaginaCadastro, dados);
         }
 
+
+        //MÉTODO QUE ADICIONA UM MÉDICO NA APLICAÇÃO
+
+        //VALIDAÇÃO DO COOKIE COM TOKEN DE AUTENTICAÇÃO
+        //COOKIE CONFIGURADO EM PROGRAM->builder.Services.AddAntiforgery(options....
+        [ValidateAntiForgeryToken]
         [HttpPost]
         [Route("")]
         public async Task<IActionResult> SalvarAsync([FromForm] MedicoDto dados)
