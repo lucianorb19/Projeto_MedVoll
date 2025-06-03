@@ -33,6 +33,14 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.SignIn.RequireConfirmedPhoneNumber = false; // Não exigir confirmação de número de telefone
 });
 
+//BLOQUEIO DE TENTATIVA DE ACESSO POR 2 MINUTOS APÓS ERRAR A SENHA 3X
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Lockout.AllowedForNewUsers = true;//VÁLIDO TAMBÉM PARA NOVOS USUÁRIOS
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(2);
+    options.Lockout.MaxFailedAccessAttempts = 3;
+});
+
 builder.Services.Configure<IdentityOptions>(options =>
 {
     options.SignIn.RequireConfirmedEmail = true; // Exigir e-mails confirmados para login
