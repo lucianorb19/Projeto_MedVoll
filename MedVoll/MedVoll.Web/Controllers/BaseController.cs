@@ -9,6 +9,8 @@ namespace MedVoll.Web.Controllers
         public override void OnActionExecuting(ActionExecutingContext context)
         {
             ViewData["Especialidades"] = GetEspecialidades();
+            //MOSTRA NA VIEW O DADO DA VARIÁVEL DE SESSÃO VollMedCard
+            ViewData["VollMedCard"] = HttpContext.Session.GetString("VollMedCard");
             base.OnActionExecuting(context);
         }
 

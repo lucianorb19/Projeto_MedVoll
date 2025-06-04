@@ -114,6 +114,8 @@ namespace MedVoll.Web.Areas.Identity.Pages.Account
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
+                    //DEFININDO VARIÁVEL DA SESSÃO - CHAMADA DE VollMedCard - QUE SERÁ USADA NA VIEW
+                    HttpContext.Session.SetString("VollMedCard", "1234.4567.7890.1234");
                     _logger.LogInformation("User logged in.");
                     return LocalRedirect(returnUrl);
                 }

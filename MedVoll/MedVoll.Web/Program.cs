@@ -65,6 +65,19 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.SameSite = SameSiteMode.Strict; // Restringe envio desse cookie para outro site fora da aplicação
 });
 
+//MAIS CONFIGURAÇÕES ADICIONAIS PARA COOKIES
+//AddSession - MIDDLEWARE PARA A PIPELINE DA EXECUÇÃO DO .NET CORE PARA A SESSÃO
+builder.Services.AddSession(options =>
+{
+    options.Cookie.HttpOnly = true;//NÃO PODE SER ACESSADO VIA JS
+    //APLICAÇÃO FORÇA O USO DE COOKIE, MESMO SEM O USUÁRIO CONCORDAR
+    options.Cookie.IsEssential = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; //SESSÃO EXIGE HTTPS
+    //1 MIN DE TEMPO PARA QUALQUER INFORMAÇÃO ADICIONADA NA SESSÃO, CASO NÃO HAJA NENHUM MECANISMO DE RENOVAÇÃO
+    options.IdleTimeout = TimeSpan.FromMinutes(1);
+});
+
+
 builder.Services.Configure<IdentityOptions>(options =>
 {
     options.SignIn.RequireConfirmedEmail = true; // Exigir e-mails confirmados para login
@@ -88,6 +101,9 @@ builder.Services.AddAntiforgery(options =>
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+//USA O QUE ESTIVER DEFINIDO EM builder.Services.AddSession....
+app.UseSession();
 
 if (app.Environment.IsDevelopment())
 {
