@@ -58,6 +58,13 @@ namespace MedVoll.Web.Controllers
                 return Redirect("/medicos");
             }
 
+            //AO ENVIAR OS DADOS DO MÉDICO PARA CADASTRO, SE NÃO FOR UM OBJETO DTO VÁLIDO
+            //MOSTRA NOVAMENTE O FORMULÁRIO
+            if (!ModelState.IsValid)
+            {
+                return View(PaginaCadastro, dados);
+            }
+
             try
             {
                 await _service.CadastrarAsync(dados);

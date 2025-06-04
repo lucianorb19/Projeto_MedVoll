@@ -1,4 +1,5 @@
 ﻿using MedVoll.Web.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace MedVoll.Web.Dtos
 {
@@ -20,10 +21,26 @@ namespace MedVoll.Web.Dtos
 
         public long? Id { get; set; }
         public string _method { get; set; }
+        
+        [Required(ErrorMessage = "Campo obrigatório")]
+        [MinLength(5, ErrorMessage = "Campo deve ter no mínimo 5 caracteres")]
         public string Nome { get; set; }
+        
+        [Required(ErrorMessage = "Campo obrigatório")]
+        [EmailAddress]
         public string Email { get; set; }
+        
+        [Required(ErrorMessage = "Campo obrigatório")]
+        [StringLength(6, MinimumLength =4, 
+            ErrorMessage ="Campo deve ter de 4 a 6 dígitos numéricos")]
         public string Crm { get; set; }
+        
+        //ENTENDER O QUE SIGNIFICA ESSA EXPRESSÃO REGULAR PARA VALIDAÇÃO DE TELEFONE
+        [Required(ErrorMessage = "Campo obrigatório")]
+        [RegularExpression(@"^(?:\d{8}|\d{9}|\d{4}-\d{4}|\d{5}-\d{4}|\(\d{2}\)\s*\d{4}-\d{4}|\(\d{2}\)\s*\d{5}-\d{4}|\(\d{2}\)\s*\d{9})$", ErrorMessage = "Telefone inválido")]
         public string Telefone { get; set; }
+        
+        [Required(ErrorMessage = "Campo obrigatório")]
         public Especialidade Especialidade { get; set; }
     }
 }
