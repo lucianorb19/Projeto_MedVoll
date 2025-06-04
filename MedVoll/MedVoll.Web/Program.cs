@@ -144,4 +144,17 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+// Middleware para adicionar cabeçalhos de segurança contra:
+// 1. XSS (Cross-Site Scripting):
+// 2. Sniffing de MIME Type:
+app.Use(async (context, next) =>
+{
+    //SÓ ACEITA SCRIPTS DO PRÓPRIO SITE - para evitar XSS.
+    context.Response.Headers.Add("Content-Security-Policy", "default-src 'self'; script-src 'self';");
+
+    // Previne a interpretação incorreta de MIME types.
+    context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
+    await next();
+});
+
 app.Run();
