@@ -41,6 +41,30 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Lockout.MaxFailedAccessAttempts = 3;
 });
 
+//CONFIGURAÇÕES ADICIONAIS PARA A SENHA DE LOGIN
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Password.RequireDigit = true; // Exigir pelo menos um número
+    options.Password.RequireLowercase = true; // Exigir pelo menos uma letra minúscula
+    options.Password.RequireUppercase = true; // Exigir pelo menos uma letra maiúscula
+    options.Password.RequireNonAlphanumeric = true; // Exigir caracteres especiais
+    options.Password.RequiredLength = 8; // Tamanho mínimo da senha
+});
+
+//CONFIGURAÇÕES ADICIONAIS PARA O COMPORTAMENTO DA SESSÃO / COOKIE
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Identity/Account/Login"; // Redireciona para login se não autenticado
+    options.LogoutPath = "/Identity/Account/Logout"; // Caminho para logout
+    options.AccessDeniedPath = "/Identity/Account/AccessDenied"; // Caminho para acesso negado
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(2); // Tempo de expiração da sessão em caso de inatividade
+    options.SlidingExpiration = true; // Renova o cookie sempre que houver atividade
+
+    options.Cookie.HttpOnly = true; // Impede acesso via JavaScript
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Exige HTTPS
+    options.Cookie.SameSite = SameSiteMode.Strict; // Restringe envio desse cookie para outro site fora da aplicação
+});
+
 builder.Services.Configure<IdentityOptions>(options =>
 {
     options.SignIn.RequireConfirmedEmail = true; // Exigir e-mails confirmados para login
