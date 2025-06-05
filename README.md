@@ -170,7 +170,58 @@ Em Controllers->MedicoController - Mudar o método SalvarAsync para usar o token
 public async Task<IActionResult> SalvarAsync([FromForm] MedicoDto dados)...
 ```
 
-## 
+## CONTROLE DE AUTORIZAÇÃO
+Como controlar o acesso aos métodos de MedicoController?  
+Por exemplo, na homepage da aplicação, clicando em médicos, qualquer pessoas, sem autenticação, consegue visualizar e editar os dados dos médicos.  
+Isso pode ser remediado com a definição do atributo [Authorize] para todos os métodos da classe pertinente  
+
+No exemplo do projeto, será definido o atributo [Authorize] para todos métodos das classes MedicoController e ConsultaController  
+Controllers->MedicoController
+```
+[Authorize]
+[Route("medicos")]
+public class MedicoController : BaseController ...
+```
+Controllers->ConsultaController  
+```
+[Authorize]
+[Route("consultas")]
+public class ConsultaController : BaseController...
+```
+
+Program->Linha 38 - Acima de var app = builder.Build()  
+```
+//CONTROLE DE AUTORIZAÇÃO - [Authorize] NO INÍCIO DA CLASSE
+builder.Services.AddAuthorization();
+```
+
+Program->Linha 56 - Acima de app.UseAuthorization  
+```
+//USO DE UM MIDDLEWARE DE AUTENTICAÇÃO NO PIPELINE DE REQUISIÇÕES
+app.UseAuthentication();
+```
+
+Program-> Linha 63- Abaixo de app.MapControllerRoute....  
+```
+//HABILITA AS PÁGINAS DE LOGIN E CADASTRO - FEITO NO SCAFOLDING
+//E HABILITA O USO DESSES RECURSOS NOS ARQUIVOS ESTÁTICOS DO ASP.NET CORE IDENTITY - CSS, JS
+app.MapRazorPages().WithStaticAssets();
+```
+
+Feito isso, agora quando, a partir da homepage, o usuário acessar a aba médicos, ao invés de permitir o acesso, ele será redirecionado para a página de login.  
+*Caso o login seja feito, como ainda não foi implementado o logout, para fazer o logout, acessar https://localhost:7058/Identity/Account/Logout 
+
+Ainda pensando em controlar acesso, para que a homepage do site seja aberta a todos, sem uso de autenticação, caso seja necessário explicitar isso, um atributo [AllowAnonymous] pode ser utilizado no início da classe  
+```
+[AllowAnonymous]//PERMITE ACESSO AOS MÉTODOS DESSA CLASSE SEM AUTENTICAÇÃO
+public class HomeController : Controller
+{...
+```
+
+*Sem definir, por padrão, já permite acesso sem autenticação
+
+
+
 ## 
 ## 
 ## 
