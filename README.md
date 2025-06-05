@@ -530,8 +530,113 @@ Views->Medico->Formulario.cshtml
 ```
 
 
-##
-##
+## PROTEÇÃO CONTRA XSS (CROSS-SITE SCRIPTING) E SNIFFING DE MIME TYPE
+Cross-site Scripting - Execução de trechos de código de fontes externas à aplicação  
+Scripting in line - Execução de trechos de códigos maliciosos inseridos em entradas da aplicação.  
+Sniffing de MIME Type - Execução de códigos maliciosos disfarcçados como um arquivo de formato comum (png, pdf, jpg) e que na verdade é um script aguardando para ser executado.  
+Como evitar?  
+
+Program-> linha 152 - acima da última linha app.Run()
+```
+// Middleware para adicionar cabeçalhos de segurança contra:
+// 1. XSS (Cross-Site Scripting):
+// 2. Script in line
+// 3. Sniffing de MIME Type:
+app.Use(async (context, next) =>
+{
+    //SÓ ACEITA SCRIPTS DO PRÓPRIO SITE - para evitar XSS.
+    context.Response.Headers.Add("Content-Security-Policy", "default-src 'self'; script-src 'self';");
+
+    // Previne a interpretação incorreta de MIME types.
+    context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
+    await next();
+});
+```
+
+
+## RESTRINGINDO ACESSO PELO PAPEL DO USUÁRIO
+Tipos de usuários diferentes precisam acessar funcionalidades distintas da aplicação. Para definir isso, primeiro vamos estabelecer que no cabeçalho da página sempre haja as opções de login / logout e “bem vindo usuário”. Isso é feito:  
+
+Adicionando o arquivo Views->Shared->_LoginPartial.cshtml  
+```
+@using Microsoft.AspNetCore.Identity
+
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+<ul class="navbar-nav">
+@if (SignInManager.IsSignedIn(User))
+{
+    <li class="nav-item">
+        <a id="manage" class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @UserManager.GetUserName(User)!</a>
+    </li>
+    <li class="nav-item">
+        <form id="logoutForm" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+            <button id="logout" type="submit" class="nav-link btn btn-link text-dark border-0">Logout</button>
+        </form>
+    </li>
+}
+else
+{
+    <li class="nav-item">
+        <a class="nav-link text-dark" id="register" asp-area="Identity" asp-page="/Account/Register">Register</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link text-dark" id="login" asp-area="Identity" asp-page="/Account/Login">Login</a>
+    </li>
+}
+</ul>
+```
+
+Aplicando essa mudança para todos as páginas da aplicação  
+Views->Shared->_Layout.cshtml - linha 36 entre as tags div  
+```
+<partial name="_LoginPartial"/>
+```
+
+Tornar Alice a admin da aplicação  
+Data->IdentitySeeder - Linha 24 antes de fechar o método SeedUsersAsync  
+```
+//CRIA O PAPEL Admin CASO AINDA NÃO EXISTA
+const string adminRole = "Admin";
+if(! await roleManager.RoleExistsAsync(adminRole))
+{
+    await roleManager.CreateAsync(new IdentityRole(adminRole));
+}
+
+//TORNA ALICE ADMIN DA APLICAÇÃO  
+IdentityUser? alice = await userManager.FindByEmailAsync("alice@smith.com");
+IList<IdentityUser> admins = await userManager.GetUsersInRoleAsync(adminRole);
+if (!admins.Any(a => a.Email == alice.Email))
+{
+    await userManager.AddToRoleAsync(alice, adminRole);
+}
+```
+
+Dadas as mudanças, agora iremos definir que as opções de editar e excluir médicos apareça somente para os usuários admin.  
+
+Views->Medico->Listagem.cshtml - Linhas 35 até 44 - onde estão as tags dos botões excluir e editar  
+```
+@if (User.IsInRole("Admin"))
+{
+    <a href="@Url.Action("Formulario", "Medicos" , new { id=medico.Id })" class="btn btn-edit" title="Editar">
+        <img src="~/assets/edit.svg" alt="Editar">
+    </a>
+
+    <a href="#deleteModal" class="btn btn-delete" data-toggle="modal" data-id="@medico.Id" data-url="/medicos" title="Excluir">
+        <img src="~/assets/delete.svg" alt="Excluir">
+    </a>
+}
+```
+
+E também definir que somente admins possam cadastrar novos médicos  
+Controllers->MedicoController-> Nos atributos [] do método  
+```
+//SOMENTE USUÁRIOS Admin TEM ACESSO A ESSE MÉTODO
+[Authorize(Roles = "Admin")]
+```
+
+
 ##
 ##
 ##
