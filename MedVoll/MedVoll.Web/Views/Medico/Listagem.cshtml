@@ -1,17 +1,25 @@
 @using MedVoll.Web.Dtos;
 @model PaginatedList<MedVoll.Web.Dtos.MedicoDto>
+@using System.Security.Claims;
+
+@{
+    Claim roleClaim = User.Claims.FirstOrDefault(c => c.Type == "Role");
+}
 
 <main class="container">
     <section class="card">
         <h2 class="title">Listagem de médicos</h2>
 
-        <div class="table-controls">
-            <a href="@Url.Action("Formulario", "Medicos" )" class="btn btn-tertiary">
-                <img src="~/assets/plus.png" alt="Ícone de adicionar" class="btn-icon">
-                Novo Médico
-            </a>
-        </div>
-
+        @if(roleClaim?.Value == "Admin")
+        {
+            <div class="table-controls">
+                <a href="@Url.Action("Formulario", "Medicos" )" class="btn btn-tertiary">
+                    <img src="~/assets/plus.png" alt="Ícone de adicionar" class="btn-icon">
+                    Novo Médico
+                </a>
+            </div>
+        }
+        
         <table class="tabela">
             <thead>
                 <tr>

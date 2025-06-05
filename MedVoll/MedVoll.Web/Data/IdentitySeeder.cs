@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 
 namespace MedVoll.Web.Data
 {
@@ -36,6 +37,19 @@ namespace MedVoll.Web.Data
             {
                 await userManager.AddToRoleAsync(alice, adminRole);
             }
+
+            IdentityUser? bob = await userManager.FindByEmailAsync("bob@smith.com");
+
+            //CLAIMS PARA ALICE
+            IList<Claim> userClaims = await userManager.GetClaimsAsync(alice);
+            await userManager.RemoveClaimsAsync(alice, userClaims);
+            await userManager.AddClaimAsync(alice, new Claim("FullName", "Alice Smith"));
+            await userManager.AddClaimAsync(alice, new Claim("Role", "Admin"));
+            //CLAIMS PARA BOB
+            userClaims = await userManager.GetClaimsAsync(bob);
+            await userManager.RemoveClaimsAsync(bob, userClaims);
+            await userManager.AddClaimAsync(bob, new Claim("FullName", "Bob Smith"));
+        
 
         }
 
