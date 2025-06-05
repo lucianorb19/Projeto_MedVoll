@@ -306,6 +306,28 @@ app.UseSession();
 ```
 
 
-## 
+## IDENTIFICADOR DA SESSÃO NO RODAPÉ DO SITE
+No caso da aplicação, sempre que uma sessão for iniciada por um usuário, será exibido no rodapé da página um identificador, que nesse contexto é chamado de **VollMedCard**, um número identificador de cada usuário _(só exemplo, na verdade o identificado gerado para esse teste é o mesmo para todos usuários)_ .
+
+Areas->Identity->Pages->Account->Login.cshtml->Login.cshtml.cs - Linha 117 - abaixo de if (result.Succeeded}...  
+```
+HttpContext.Session.SetString("VollMedCard", "1234.4567.7890.1234");
+```
+
+Controllers->BaseController - Linha 12 - abaixo de ViewData["Especialidades"]...  
+```
+//MOSTRAR NA VIEW O DADO DA VARIÁVEL DE SESSÃO VollMedCard
+ViewData["VollMedCard"] = HttpContext.Session.GetString("VollMedCard");
+```
+
+Views->Shared->_footer.cshtml -Linha 2 - adicionar tag div para que o footer mostre também os dados do VollMedCard  
+```
+<div class="container">
+    <span class="text-center">VollMed Card: <b>@ViewData["VollMedCard"]</b></span>
+</div>
+```
+
+
+
 ## 
 ## 
