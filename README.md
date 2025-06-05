@@ -136,8 +136,40 @@ using (var scope = app.Services.CreateScope())
     }
 }
 ```
+Como consultar as informações inseridas na BD?  
+Botão direito em vollmed.db -> abrir com DB Browser for SQLite-> Browse Data->
+Assim é possível consultar nas tabelas AspNetUsers e AspNetRoles os usuários e papéis criados pela última execução.  
+Lembrando que: considerando como o código foi escrito, caso seja executado novamente, não vai duplicar os usuários/papéis ou gerar erro, dado que, caso já existam os registros, ele simplesmente não faz nada.
 
-## 
+## CSRF - CROS-SITE REQUEST FORGERY
+Tipo de ataque onde o hacker se aproveita da sessão em aberto do usuário para acessar métodos que precisem de autenticação. No momento, a aplicação não tem proteção contra este tipo de ataque, tanto que, se o método de adicionar médico for acionado, pelo Postman, ele funciona (o que simula um uso indevido de sessão)  
+
+Como evitar?  
+
+Em Program->Linha 32 - var app = builder.Build(); - escrever acima  
+```
+//MIDDLEWARE CONTRA ATAQUES CSRF
+//
+builder.Services.AddAntiforgery(options =>
+{
+    options.Cookie.Name = "VollMed.AntiForgery"; // Nome personalizado do cookie
+    options.Cookie.HttpOnly = true; // Evitar acesso via JavaScript
+    options.HeaderName = "X-CSRF-TOKEN"; // Cabeçalho personalizado para APIs
+});
+```
+
+Em Controllers->MedicoController - Mudar o método SalvarAsync para usar o token de autenticação do cookie da sessão, ou seja, evitar acessos externos não autenticados  
+```
+//MÉTODO QUE ADICIONA UM MÉDICO NA APLICAÇÃO
+
+//VALIDAÇÃO DO COOKIE COM TOKEN DE AUTENTICAÇÃO
+//COOKIE CONFIGURADO EM PROGRAM->builder.Services.AddAntiforgery(options....
+[ValidateAntiForgeryToken]
+[HttpPost]
+[Route("")]
+public async Task<IActionResult> SalvarAsync([FromForm] MedicoDto dados)...
+```
+
 ## 
 ## 
 ## 
