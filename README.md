@@ -637,6 +637,54 @@ Controllers->MedicoController-> Nos atributos [] do método
 ```
 
 
-##
-##
-##
+## UTILIZANDO CLAIMS PRA MELHORAR A EXPERIÊNCIA DO USUÁRIO
+Criar claims para os dois usuários cadastrados, bob e alice  
+Data->IdentitySeeder - linha 40 ao final do método SeedUserAsync  
+```
+//CLAIMS PARA ALICE
+IList<Claim> userClaims = await userManager.GetClaimsAsync(alice);
+await userManager.RemoveClaimsAsync(alice, userClaims);
+await userManager.AddClaimAsync(alice, new Claim("FullName", "Alice Smith"));
+await userManager.AddClaimAsync(alice, new Claim("Role", "Admin"));
+//CLAIMS PARA BOB
+userClaims = await userManager.GetClaimsAsync(bob);
+await userManager.RemoveClaimsAsync(bob, userClaims);
+await userManager.AddClaimAsync(bob, new Claim("FullName", "Bob Smith"));
+```
+
+Com essas claims definidas, fazer com que o cabeçalho de todas as páginas apareça o nome completo do usuário logado  
+Views->Shared->_LoginPartial - linha 3, abaixo de @inject UserManager<IdentityUser> UserManager  
+```
+@{
+    var fullNameClaim = User.Claims.FirstOrDefault(c => c.Type == "FullName");
+    string? userName = fullNameClaim?.Value ?? @UserManager.GetUserName(User);
+}
+```
+
+Views->Shared->_LoginPartial - linha 15, dentro da tag a  
+```
+<li class="nav-item">
+    <a id="manage" class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello, @userName!</a>
+</li>
+```
+
+
+
+##  RESTRINGINDO ACESSO PELO PAPEL DO USUÁRIO - USANDO CLAIMS
+Assim como já foi feito anteriormente, é necessário restringir certos acessos a depender do papel do usuário. Agora isso vai ser implementado usando claims.  
+
+Restringir que somente usuários admin possam cadastrar novos médicos  
+Views->Medico->Listagem.cshtml  
+Linha 3 - `@using System.Security.Claims;`  
+Linha 12 - div com conteúdo Novo médico - envelopar com a condicional  
+```
+@if(roleClaim?.Value == "Admin")
+{
+    <div class="table-controls">
+        <a href="@Url.Action("Formulario", "Medicos" )" class="btn btn-tertiary">
+            <img src="~/assets/plus.png" alt="Ícone de adicionar" class="btn-icon">
+            Novo Médico
+        </a>
+    </div>
+}
+```
