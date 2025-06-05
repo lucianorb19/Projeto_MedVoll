@@ -11,7 +11,6 @@ namespace MedVoll.Web.Data
             var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             
-            // Verifica e cria a função "User", se necessário
             // CRIA O PAPÉL DE User, CASO AINDA NÃO EXISTA
             const string userRole = "User";
             if (!await roleManager.RoleExistsAsync(userRole))
@@ -22,6 +21,22 @@ namespace MedVoll.Web.Data
             // COM A FUNÇÃO CreateUserAsync - CRIA DOIS USUÁRIOS ESPECÍFICOS
             await CreateUserAsync(userManager, "alice@smith.com", "Password@123", userRole);
             await CreateUserAsync(userManager, "bob@smith.com", "Password@123", userRole);
+
+            //CRIA O PAPEL Admin CASO AINDA NÃO EXISTA
+            const string adminRole = "Admin";
+            if(! await roleManager.RoleExistsAsync(adminRole))
+            {
+                await roleManager.CreateAsync(new IdentityRole(adminRole));
+            }
+
+            //TORNA ALICE ADMIN DA APLICAÇÃO
+            IdentityUser? alice = await userManager.FindByEmailAsync("alice@smith.com");
+            IList<IdentityUser> admins = await userManager.GetUsersInRoleAsync(adminRole);
+            if (!admins.Any(a => a.Email == alice.Email))
+            {
+                await userManager.AddToRoleAsync(alice, adminRole);
+            }
+
         }
 
         //MÉTODO QUE CRIA USUÁRIOS-DADO O OBJETO UserManager, EMAIL, SENHA E PAPÉL

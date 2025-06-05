@@ -44,10 +44,13 @@ namespace MedVoll.Web.Controllers
 
 
         //MÉTODO QUE ADICIONA UM MÉDICO NA APLICAÇÃO
+        //SOMENTE USUÁRIOS Admin TEM ACESSO A ESSE MÉTODO
+        [Authorize(Roles = "Admin")]
 
         //VALIDAÇÃO DO COOKIE COM TOKEN DE AUTENTICAÇÃO
         //COOKIE CONFIGURADO EM PROGRAM->builder.Services.AddAntiforgery(options....
         [ValidateAntiForgeryToken]
+
         [HttpPost]
         [Route("")]
         public async Task<IActionResult> SalvarAsync([FromForm] MedicoDto dados)

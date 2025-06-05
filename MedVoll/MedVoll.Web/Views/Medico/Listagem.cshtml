@@ -26,21 +26,24 @@
             <tbody>
                 @foreach (var medico in Model)
                 {
-                <tr>
-                    <td>@medico.Nome</td>
-                    <td>@medico.Email</td>
-                    <td>@medico.Crm</td>
-                    <td>@medico.Especialidade.GetDisplayName()</td>
-                    <td>
-                        <a href="@Url.Action("Formulario", "Medicos" , new { id=medico.Id })" class="btn btn-edit" title="Editar">
-                            <img src="~/assets/edit.svg" alt="Editar">
-                        </a>
+                    <tr>
+                        <td>@medico.Nome</td>
+                        <td>@medico.Email</td>
+                        <td>@medico.Crm</td>
+                        <td>@medico.Especialidade.GetDisplayName()</td>
+                        <td>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a href="@Url.Action("Formulario", "Medicos" , new { id=medico.Id })" class="btn btn-edit" title="Editar">
+                                    <img src="~/assets/edit.svg" alt="Editar">
+                                </a>
 
-                        <a href="#deleteModal" class="btn btn-delete" data-toggle="modal" data-id="@medico.Id" data-url="/medicos" title="Excluir">
-                            <img src="~/assets/delete.svg" alt="Excluir">
-                        </a>
-                    </td>
-                </tr>
+                                <a href="#deleteModal" class="btn btn-delete" data-toggle="modal" data-id="@medico.Id" data-url="/medicos" title="Excluir">
+                                    <img src="~/assets/delete.svg" alt="Excluir">
+                                </a>
+                            }
+                        </td>
+                    </tr>
                 }
             </tbody>
         </table>
