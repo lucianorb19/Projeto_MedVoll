@@ -222,8 +222,41 @@ public class HomeController : Controller
 
 
 
-## 
-## 
+## CONFIRMAÇÃO DE E-MAIL PARA CADASTRO
+Na aplicação, pode ser configurado a exigência do usuário confirmar o cadastro na sua caixa de entrada de e-mail. Como a aplicação não tem emissor de e-mail, ela simula  
+
+Program->Linha 25 - abaixo de builder.Services.AddDefaultIdentity<IdentityUser...  
+```
+//CONFIRMAÇÃO DE E-MAIL PARA CADASTRAR USUÁRIO
+//EM TEORIA, O USUÁRIO PRECISARIA ACESSAR SUA CAIXA DE ENTRADA PARA CONFIRMAR O E-MAIL E CADASTRAR
+//MAS COMO A APLIAÇÃO NÃO TEM UM EMISSOR DE E-MAIL, ELA MESMA OFERECE A OPÇÃO DE CONFIRMAR
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.SignIn.RequireConfirmedEmail = true; // Exigir e-mails confirmados para login
+    options.SignIn.RequireConfirmedPhoneNumber = false; // Não exigir confirmação de número de telefone
+});
+```
+
+## BLOQUEIO DE ACESSO POR DOIS MINUTOS APÓS TRÊS TENTATIVAS DE SENHA ERRADA
+Program-> Linha 25 - abaixo de ....options.SignIn.RequireConfirmedEmail...  
+```
+//BLOQUEIO DE TENTATIVA DE ACESSO POR 2 MINUTOS APÓS ERRAR A SENHA 3X
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Lockout.AllowedForNewUsers = true;
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(2);
+    options.Lockout.MaxFailedAccessAttempts = 3;
+});
+```
+
+Areas->Identity->Pages->Account->Login.html->Login.cshtml.cs  
+Linha 114 - dentro do método OnPostAsync, que é responsável por efetuar o login, mudar um atributo da função PasswordSignInAsync, que é lockoutOnFailure, passando valor true  
+```
+var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
+```
+
+Sendo assim, se o usuário errar a senha 3x, é bloqueado por 2min.  
+*É possível confirmar até quando o usuário fica bloqueado na tabela AspNetUsers, no campo LockOutEnd.
 ## 
 ## 
 ## 
