@@ -22,13 +22,13 @@ Desenvolvido com ASP.NET Core
 1. Restrições de acesso utilizando _User Claims_ ;
 
 ## CONFIGURAÇÕES INICIAIS
-Instalar gerenciador de BD do .NET - Na pasta MedVoll.Web, pelo CMD
-dotnet tool install --global dotnet-ef
+Instalar gerenciador de BD do .NET - Na pasta MedVoll.Web, pelo CMD  
+```dotnet tool install --global dotnet-ef```
 
-Aplicar as migrations iniciais do projeto -Pelo CMD, na pasta MedVoll.Web
-dotnet ef database update
+Aplicar as migrations iniciais do projeto -Pelo CMD, na pasta MedVoll.Web  
+```dotnet ef database update```
 
-Com o projeto aberto no Visual Strudio - Instalar Identity - Pelo Nuget
+Com o projeto aberto no Visual Strudio - Instalar Identity - Pelo Nuget  
 Na interface do Visual Studio -> Ferramentas -> Gerenciador de Pacotes Nuget-> Gerenciar Pacotes  
 Nome: Microsoft.AspNetCore.Identity.EntityFrameworkCore (v. 9.0.0)
 
