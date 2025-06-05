@@ -430,7 +430,106 @@ public ConsultaController(IConsultaService consultaService, IMedicoService medic
 
 Com isso, sempre que forem feitas requisições ao sistema, o IP salvo da sessão e o IP atual da requisição serão comparados, evitando ataques de IPs externos.
 
-##
+## VALIDAÇÃO DE DADOS
+
+Validar os dados é importante para a proteção e o devido funcionamento da aplicação. Isso pode ser feito por meio de Data Annotations, aplicadas aos atributos das classes DTOs.  
+
+Dtos->MedicoDto-Nos atributos  
+```
+public long? Id { get; set; }
+public string _method { get; set; }
+        
+[Required(ErrorMessage = "Campo obrigatório")]
+[MinLength(5, ErrorMessage = "Campo deve ter no mínimo 5 caracteres")]
+public string Nome { get; set; }
+        
+[Required(ErrorMessage = "Campo obrigatório")]
+[EmailAddress]
+public string Email { get; set; }
+        
+[Required(ErrorMessage = "Campo obrigatório")]
+[StringLength(6, MinimumLength =4, 
+    ErrorMessage ="Campo deve ter de 4 a 6 dígitos numéricos")]
+public string Crm { get; set; }
+        
+[Required(ErrorMessage = "Campo obrigatório")]
+[RegularExpression(@"^(?:\d{8}|\d{9}|\d{4}-\d{4}|\d{5}-\d{4}|\(\d{2}\)\s*\d{4}-\d{4}|\(\d{2}\)\s*\d{5}-\d{4}|\(\d{2}\)\s*\d{9})$", ErrorMessage = "Telefone inválido")]
+public string Telefone { get; set; }
+        
+[Required(ErrorMessage = "Campo obrigatório")]
+public Especialidade Especialidade { get; set; }
+```
+
+Utilização dessa validação em Controllers->MedicoController - linha 61 - abaixo de if (dados._method == "delete"...  
+```
+//AO ENVIAR OS DADOS DO MÉDICO PARA CADASTRO, SE NÃO FOR UM OBJETO DTO VÁLIDO
+//MOSTRA NOVAMENTE O FORMULÁRIO
+if (!ModelState.IsValid)
+{
+    return View(PaginaCadastro, dados);
+}
+```
+
+Mudar a view do formulário de cadastro de médico para destacar quais campos estão inválidos. Isso é feito adicionando a tag <span asp-validation-for="X" class="text-danger"></span>
+para cada tag que contém um campo que contenha validação  
+Views->Medico->Formulario.cshtml  
+```
+<form method="post" asp-action="" asp-controller="Medicos">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" name="_method" value="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="form-group">
+        <label asp-for="Nome">Nome:</label>
+        <input asp-for="Nome" class="form-control" />
+        <span asp-validation-for="Nome" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Email">Email:</label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Telefone">Telefone:</label>
+        <input asp-for="Telefone" class="form-control" placeholder="(  )    -" />
+        <span asp-validation-for="Telefone" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Crm" class="control-label">CRM:</label>
+        <input asp-for="Crm" class="form-control" />
+        <span asp-validation-for="Crm" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Especialidade">Especialidade</label>
+        <select asp-for="Especialidade" class="form-control" >
+            <option value="">[SELECIONE UMA ESPECIALIDADE]</option>
+            @foreach (var especialidade in especialidades)
+            {
+            <option value="@especialidade">
+                    @especialidade.GetDisplayName()
+            </option>
+            }
+        </select>
+        <span asp-validation-for="Especialidade" class="text-danger"></span>
+    </div>
+
+    <div class="buttons">
+        <button type="submit" class="btn btn-primary">
+            <img src="/assets/plus.png" alt="Ícone de adicionar" class="btn-icon">Cadastrar
+        </button>
+
+        <a href="@Url.Action("Listagem", "Medicos" )" class="btn btn-secondary">
+            <img src="~/assets/back.png" alt="Voltar" class="btn-icon">Voltar
+        </a>
+    </div>
+</form>
+```
+
+
 ##
 ##
 ##
