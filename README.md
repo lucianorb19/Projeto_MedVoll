@@ -257,7 +257,55 @@ var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Passwor
 
 Sendo assim, se o usuário errar a senha 3x, é bloqueado por 2min.  
 *É possível confirmar até quando o usuário fica bloqueado na tabela AspNetUsers, no campo LockOutEnd.
-## 
+
+
+## MELHORIAS NA SEGURANÇA PARA COOKIES E SENHAS
+Program->Linha 44 - Abaixo de ...options.Lockout.MaxFailedAccessAttempts = 3;...  
+```
+//CONFIGURAÇÕES ADICIONAIS PARA A SENHA DE LOGIN
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Password.RequireDigit = true; // Exigir pelo menos um número
+    options.Password.RequireLowercase = true; // Exigir pelo menos uma letra minúscula
+    options.Password.RequireUppercase = true; // Exigir pelo menos uma letra maiúscula
+    options.Password.RequireNonAlphanumeric = true; // Exigir caracteres especiais
+    options.Password.RequiredLength = 8; // Tamanho mínimo da senha
+});
+
+//CONFIGURAÇÕES ADICIONAIS PARA O COMPORTAMENTO DA SESSÃO / COOKIE
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Identity/Account/Login"; // Redireciona para login se não autenticado
+    options.LogoutPath = "/Identity/Account/Logout"; // Caminho para logout
+    options.AccessDeniedPath = "/Identity/Account/AccessDenied"; // Caminho para acesso negado
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(2); // Tempo de expiração da sessão em caso de inatividade
+    options.SlidingExpiration = true; // Renova o cookie sempre que houver atividade
+
+    options.Cookie.HttpOnly = true; // Impede acesso via JavaScript
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Exige HTTPS
+    options.Cookie.SameSite = SameSiteMode.Strict; // Restringe envio desse cookie para outro site fora da aplicação
+});
+
+//MAIS CONFIGURAÇÕES ADICIONAIS PARA COOKIES
+//AddSession - MIDDLEWARE PARA A PIPELINE DA EXECUÇÃO DO .NET CORE PARA A SESSÃO
+builder.Services.AddSession(options =>
+{
+    options.Cookie.HttpOnly = true;//NÃO PODE SER ACESSADO VIA JS
+    //APLICAÇÃO FORÇA O USO DE COOKIE, MESMO SEM O USUÁRIO CONCORDAR
+    options.Cookie.IsEssential = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; //SESSÃO EXIGE HTTPS
+    //1 MIN DE TEMPO PARA QUALQUER INFORMAÇÃO ADICIONADA NA SESSÃO, CASO NÃO HAJA NENHUM MECANISMO DE RENOVAÇÃO
+    options.IdleTimeout = TimeSpan.FromMinutes(1);
+});
+```
+
+Program-> Linha 103 - abaixo de var app = builder.Build();  
+```
+//USA O QUE ESTIVER DEFINIDO EM builder.Services.AddSession....
+app.UseSession();
+```
+
+
 ## 
 ## 
 ## 
