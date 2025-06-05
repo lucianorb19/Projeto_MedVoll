@@ -329,5 +329,110 @@ Views->Shared->_footer.cshtml -Linha 2 - adicionar tag div para que o footer mos
 
 
 
-## 
-## 
+## ATAQUE DE SESSÃO
+Caso um atacante consiga sequestrar os cookies da sessão para que possa acessar indevidamente as funcionalidades do sistema que exigem esses autenticação de cookies, como evitar?  
+Nesse caso podem ser implementadas duas medidas de segurança: sempre limpar os dados da sessão residual no momento do login, além de refazer o login em segundo plano com as informações atuais (reautenticação transparente) e exigir que o IP atual da requisição seja o mesmo da sessão, ou seja, o mesmo usuário/computador no momento do login é o que usa as funções do sistema.
+
+### LIMPANDO DADOS DA SESSÃO RESIDUAL
+Inserir no construtor da classe LoginModel o parâmetro que gerencia usuários, nesse caso, userManager  
+Areas->Identity->Pages->Account->Login.cshtml->Login.cshtml.cs  
+```
+private readonly UserManager<IdentityUser> _userManager;
+
+public LoginModel(SignInManager<IdentityUser> signInManager, ILogger<LoginModel> logger, UserManager<IdentityUser> userManager)
+{
+    _signInManager = signInManager;
+    _logger = logger;
+    _userManager = userManager;
+}
+```
+
+Limpar dados da sessão e reemitir o cookie de autenticação  
+Areas->Identity->Pages->Account->Login.cshtml->Login.cshtml.cs - linha 119 abaixo de if (result.Succeeded)  
+```
+//LIMPEZA DE DADOS DA SESSÃO RESIDUAL
+HttpContext.Session.Clear();
+
+//REEMISSÃO DO COOKIE DE AUTENTICAÇÃO APÓS LOGIN
+var user = await _userManager.FindByEmailAsync(Input.Email);
+await _signInManager.SignOutAsync();
+await _signInManager.SignInAsync(user, Input.RememberMe);
+```
+
+### COMPARAÇÃO DE IPs DA SESSÃO E DA REQUISIÇÃO
+Criar um construtor para a classe BaseController, com o atributo de tipo objeto SignInManager (gestão de usuários)  
+Controllers->BaseController  
+```
+private readonly SignInManager<IdentityUser> _signInManager;
+
+//CONSTRUTOR DA CLASSE
+public BaseController(SignInManager<IdentityUser> signInManager)
+{
+    _signInManager = signInManager;
+}
+```
+
+Adicionar método que compara o IP atual da requisição e o IP da sessão  
+Controllers->BaseController - Final da classe - linha 40  
+```
+//MÉTODO QUE COMPARA O IP ATUAL COM O IP DA SESSÃO - PARA EVITAR ATAQUE DE IPs
+//EXTERNOS À SESSÃO COM COOKIES SEQUESTRADOS
+//MÉTODO USADO EM OnActionExecuting
+private bool CheckSessionSecurity()
+{
+    var currentIp = HttpContext.Connection.RemoteIpAddress.ToString();
+    var sessionIp = HttpContext.Session.GetString("IpAddress");
+
+    if (sessionIp != null && sessionIp != currentIp)
+    {
+        HttpContext.Session.Clear();
+        _signInManager.SignOutAsync();
+        return false;
+    }
+
+    HttpContext.Session.SetString("IpAddress", currentIp);
+    return true;
+}
+```
+
+Adicionar ao método OnActionExecuting (método executado sempre que um método dos controllers é acessado) a chamada ao método CheckSessionSecurity, fazendo com que, caso o acesso venha de um IP diferente do IP da sessão, o site é redirecionado para o login, já _deslogado_ .  
+```
+//MÉTODO EXECUTADO SEMPRE QUE UMA REQUISIÇÃO É FEITA AOS CONTROLLERS
+public override void OnActionExecuting(ActionExecutingContext context)
+{
+    //SE FOR UMA REQUISIÇÃO DE UM IP DIFERENTE DO IP DA SESSÃO, REDIRECIONA
+    //PARA LOGIN - JÁ DESLOGADO
+    if (!CheckSessionSecurity())
+    {
+        context.Result = new RedirectResult("./Login");
+    }...
+```
+
+Agora com um novo construtor que usa um novo atributo na classe BaseController, é preciso herdar esse atributo nas classes que herdam de BaseCotroller, que no caso são MedicoController e ConsultaController  
+Controllers->MedicoController - mudar construtor para herdar atributo signInManager de BaseController  
+```
+public MedicoController(IMedicoService service, SignInManager<IdentityUser> signInManager)
+: base(signInManager)
+{
+    _service = service;
+}
+```
+
+Controllers->ConsultaController - mudar construtor para herdar atributo signInManager de BaseController  
+```
+public ConsultaController(IConsultaService consultaService, IMedicoService medicoService, SignInManager<IdentityUser> signInManager)
+: base(signInManager)
+{
+    _consultaservice = consultaService;
+    _medicoService = medicoService;
+}
+```
+
+Com isso, sempre que forem feitas requisições ao sistema, o IP salvo da sessão e o IP atual da requisição serão comparados, evitando ataques de IPs externos.
+
+##
+##
+##
+##
+##
+##
